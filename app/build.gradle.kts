@@ -30,18 +30,18 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.jqssun.airplay"
-        minSdk = 23
-        targetSdk = 37
-        versionCode = 36
-        versionName = "0.0.36"
+        applicationId "com.aloloader.cast"
+    minSdkVersion 21
+    targetSdkVersion 33
+    versionCode 1
+    versionName "1.0.0.1"
+}
 
-        externalNativeBuild {
-            cmake {
-                arguments += "-DANDROID_STL=c++_shared"
-                arguments += "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
-            }
-        }
+applicationVariants.all { variant ->
+    variant.outputs.all {
+        outputFileName = "Aloloader-Cast-v${variant.versionName}.apk"
+    }
+}
     }
 
     externalNativeBuild {
