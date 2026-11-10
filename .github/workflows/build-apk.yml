@@ -10,26 +10,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: 1. Checkout code
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Set up JDK 17
+      - name: 2. Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: 3. Set up Android SDK and Build Tools
+        run: |
+          echo "Setting up Android SDK..."
+          export ANDROID_SDK_ROOT=$HOME/android-sdk
+          mkdir -p $ANDROID_SDK_ROOT
+          
+          # Tải và cài đặt Android Command-line Tools
+          CMTL_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
+          curl -s -o cmdline-tools.zip $CMTL_URL
+          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools/latest
+          unzip -q cmdline-tools.zip -d $ANDROID_SDK_ROOT/cmdline-tools/
+          mv $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools/* $ANDROID_SDK_ROOT/cmdline-tools/latest/
+          rm -rf $ANDROID_SDK_ROOT/cmdline-tools/cmdline-tools cmdline-tools.zip
+          
+          # Cấu hình biến môi trường
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
+          
+          # Chấp nhận giấy phép và cài đặt SDK packages cần thiết
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses || true
+          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
-      - name: Build Debug APK
+      - name: 4. Build Debug APK
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
 
-      - name: Upload APK
+      - name: 5. Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Aloloader-Cast-v1.0.0.1-Installer
